@@ -4,25 +4,39 @@ let autoSlide;
 
 function renderNote(index) {
   const note = notes[index];
+  if (!note) return;
+
   $('#note-container').html(`
     <div class="card shadow p-4 bg-white rounded-4">
       <div class="card-body">
-        ${note}
-        <div class="text-center mt-3 text-muted"><small>Note ${index + 1}/20</small></div>
+        <h4 class="card-title">🌿 ${note.titre}</h4>
+        <hr>
+        <h6>📖 Verset biblique</h6>
+        <p class="fst-italic">${note.verset}</p>
+        <h6>🙏 Prière</h6>
+        <p>${note.priere}</p>
+        <h6>💬 Citation inspirante</h6>
+        <blockquote class="blockquote">
+          <p>${note.citation}</p>
+        </blockquote>
+        <div class="text-center mt-3 text-muted"><small>Méditation ${index + 1} / ${notes.length}</small></div>
       </div>
     </div>
   `);
 }
 
-function parseNotes(raw) {
-  return raw.split(/\n(?=\d+\.\s*🌿)/).map(n => n.trim());
-}
-
 $('#generate-btn').click(() => {
+  $('#note-container').html('<div class="text-center py-5">⏳ Génération en cours...</div>');
   $.post('/api/generate', {}, (data) => {
-    notes = parseNotes(data.notes);
-    currentIndex = 0;
-    renderNote(currentIndex);
+    if (data.notes && Array.isArray(data.notes)) {
+      notes = data.notes;
+      currentIndex = 0;
+      renderNote(currentIndex);
+    } else {
+      $('#note-container').html('<div class="alert alert-danger">⚠️ Aucune méditation reçue.</div>');
+    }
+  }).fail(() => {
+    $('#note-container').html('<div class="alert alert-danger">❌ Erreur lors de la génération.</div>');
   });
 });
 
@@ -45,5 +59,5 @@ $('#auto-btn').click(() => {
   autoSlide = setInterval(() => {
     $('#next-btn').click();
     if (currentIndex >= notes.length - 1) clearInterval(autoSlide);
-  }, 10000);
+  }, 10000); // Toutes les 10 secondes
 });
