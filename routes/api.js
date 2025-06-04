@@ -4,6 +4,9 @@ const axios = require('axios');
 
 router.post('/generate', async (req, res) => {
   try {
+    // 🔍 Vérifier que la clé API est bien chargée
+    console.log("🔐 COHERE_API_KEY =", process.env.COHERE_API_KEY);
+
     const prompt = `Génère 20 méditations chrétiennes en français dans ce format clair et structuré :
 
 1. 🌿 Titre : [titre]
@@ -35,7 +38,6 @@ Thèmes variés : Espérance, Foi, Paix, etc.`;
 
     const rawText = response.data.text || '';
 
-    // Séparer les méditations : chaque méditation commence par un numéro et 🌿
     const meditationBlocks = rawText.split(/\n(?=\d+\.\s*🌿)/).filter(Boolean);
 
     const notes = meditationBlocks.map(block => {
@@ -50,7 +52,7 @@ Thèmes variés : Espérance, Foi, Paix, etc.`;
         priere: priereMatch ? priereMatch[1].trim() : '',
         citation: citationMatch ? citationMatch[1].trim() : ''
       };
-    }).filter(note => note.titre && note.verset); // on garde uniquement les méditations valides
+    }).filter(note => note.titre && note.verset);
 
     res.status(200).json({ notes });
 
