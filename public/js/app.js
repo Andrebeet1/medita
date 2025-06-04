@@ -1,7 +1,8 @@
 let notes = [];
 let currentIndex = 0;
-let autoSlide;
+let autoSlide = null;
 
+// Affiche la note actuelle
 function renderNote(index) {
   const note = notes[index];
   if (!note) return;
@@ -32,8 +33,10 @@ function renderNote(index) {
   `);
 }
 
+// Bouton : Générer les méditations depuis l'API
 $('#generate-btn').click(() => {
   $('#note-container').html('<div class="text-center py-5">⏳ Génération en cours...</div>');
+  clearInterval(autoSlide); // Stoppe l'auto-slide si actif
 
   $.post('/api/generate', {}, (data) => {
     if (data.notes && Array.isArray(data.notes) && data.notes.length > 0) {
@@ -44,11 +47,12 @@ $('#generate-btn').click(() => {
       $('#note-container').html('<div class="alert alert-warning">⚠️ Aucune méditation reçue.</div>');
     }
   }).fail((err) => {
-    console.error("Erreur API :", err);
+    console.error("❌ Erreur API :", err);
     $('#note-container').html('<div class="alert alert-danger">❌ Erreur lors de la génération des méditations.</div>');
   });
 });
 
+// Bouton : Suivant
 $('#next-btn').click(() => {
   if (currentIndex < notes.length - 1) {
     currentIndex++;
@@ -56,6 +60,7 @@ $('#next-btn').click(() => {
   }
 });
 
+// Bouton : Précédent
 $('#prev-btn').click(() => {
   if (currentIndex > 0) {
     currentIndex--;
@@ -63,13 +68,22 @@ $('#prev-btn').click(() => {
   }
 });
 
+// Bouton : Lecture automatique
 $('#auto-btn').click(() => {
   clearInterval(autoSlide);
+  if (notes.length === 0) return;
+
   autoSlide = setInterval(() => {
     if (currentIndex < notes.length - 1) {
-      $('#next-btn').click();
+      currentIndex++;
+      renderNote(currentIndex);
     } else {
       clearInterval(autoSlide);
+      $('#note-container').append(`
+        <div class="text-center mt-3 text-success fw-bold">
+          ✅ Fin de la lecture automatique.
+        </div>
+      `);
     }
-  }, 10000); // Changement toutes les 10 secondes
+  }, 10000); // Toutes les 10 secondes
 });
