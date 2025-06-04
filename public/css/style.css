@@ -1,0 +1,13 @@
+body {
+    font-family: 'Georgia', serif;
+  }
+  
+  .card {
+    background-image: url('/images/sky.jpg');
+    background-size: cover;
+    background-position: center;
+    color: white;
+    background-blend-mode: overlay;
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+  
