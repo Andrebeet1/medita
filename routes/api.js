@@ -35,21 +35,27 @@ Thèmes variés : Espérance, Foi, Paix, etc.`;
 
     const rawText = response.data.text;
 
-    const meditationBlocks = rawText.split(/\n(?=\d+\.\s*🌿)/); // split chaque méditation
+    // Séparation des méditations individuelles
+    const meditationBlocks = rawText.split(/\n(?=\d+\.\s*🌿)/).filter(Boolean);
 
     const notes = meditationBlocks.map(block => {
+      const titreMatch = block.match(/🌿 Titre\s*:\s*(.+)/);
+      const versetMatch = block.match(/📖 Verset biblique\s*([\s\S]*?)🙏/);
+      const priereMatch = block.match(/🙏 Prière\s*([\s\S]*?)💬/);
+      const citationMatch = block.match(/💬 Citation inspirante\s*([\s\S]*)/);
+
       return {
-        titre: block.match(/🌿 Titre\s*:\s*(.*)/)?.[1]?.trim() || '',
-        verset: block.match(/📖 Verset biblique\s*([\s\S]*?)🙏 Prière/)?.[1]?.trim() || '',
-        priere: block.match(/🙏 Prière\s*([\s\S]*?)💬 Citation inspirante/)?.[1]?.trim() || '',
-        citation: block.match(/💬 Citation inspirante\s*([\s\S]*)/)?.[1]?.trim() || ''
+        titre: titreMatch ? titreMatch[1].trim() : '',
+        verset: versetMatch ? versetMatch[1].trim() : '',
+        priere: priereMatch ? priereMatch[1].trim() : '',
+        citation: citationMatch ? citationMatch[1].trim() : ''
       };
-    }).filter(note => note.titre); // on garde que les notes valides
+    }).filter(note => note.titre && note.verset); // on ne garde que les notes valides
 
     res.json({ notes });
 
   } catch (error) {
-    console.error('Erreur Cohere :', error.message);
+    console.error('❌ Erreur Cohere :', error.message);
     res.status(500).send("Erreur lors de la génération.");
   }
 });
