@@ -4,7 +4,7 @@ const axios = require('axios');
 
 router.post('/generate', async (req, res) => {
   try {
-    // 🔍 Vérifier que la clé API est bien chargée
+    // 🔐 Vérifie que la clé API est bien là
     console.log("🔐 COHERE_API_KEY =", process.env.COHERE_API_KEY);
 
     const prompt = `Génère 20 méditations chrétiennes en français dans ce format clair et structuré :
@@ -36,7 +36,16 @@ Thèmes variés : Espérance, Foi, Paix, etc.`;
       }
     });
 
-    const rawText = response.data.text || '';
+    // 🔍 Affiche toute la réponse reçue de Cohere
+    console.log("📦 Réponse complète Cohere:", JSON.stringify(response.data, null, 2));
+
+    // ✅ Tente de récupérer le texte depuis generations[0].text ou text
+    const rawText =
+      response.data.generations?.[0]?.text ||
+      response.data.text ||
+      '';
+
+    console.log("📝 Texte généré par Cohere :", rawText);
 
     const meditationBlocks = rawText.split(/\n(?=\d+\.\s*🌿)/).filter(Boolean);
 
@@ -52,7 +61,7 @@ Thèmes variés : Espérance, Foi, Paix, etc.`;
         priere: priereMatch ? priereMatch[1].trim() : '',
         citation: citationMatch ? citationMatch[1].trim() : ''
       };
-    }).filter(note => note.titre && note.verset);
+    }).filter(note => note.titre && note.verset); // on garde seulement celles qui ont un titre et un verset
 
     res.status(200).json({ notes });
 
