@@ -25,7 +25,7 @@ Thèmes variés : Espérance, Foi, Paix, etc.`;
 
     const response = await axios.post('https://api.cohere.ai/v1/chat', {
       message: prompt,
-      model: "command-r",
+      model: 'command-r',
     }, {
       headers: {
         'Authorization': `Bearer ${process.env.COHERE_API_KEY}`,
@@ -33,9 +33,9 @@ Thèmes variés : Espérance, Foi, Paix, etc.`;
       }
     });
 
-    const rawText = response.data.text;
+    const rawText = response.data.text || '';
 
-    // Séparation des méditations individuelles
+    // Séparer les méditations : chaque méditation commence par un numéro et 🌿
     const meditationBlocks = rawText.split(/\n(?=\d+\.\s*🌿)/).filter(Boolean);
 
     const notes = meditationBlocks.map(block => {
@@ -50,13 +50,16 @@ Thèmes variés : Espérance, Foi, Paix, etc.`;
         priere: priereMatch ? priereMatch[1].trim() : '',
         citation: citationMatch ? citationMatch[1].trim() : ''
       };
-    }).filter(note => note.titre && note.verset); // on ne garde que les notes valides
+    }).filter(note => note.titre && note.verset); // on garde uniquement les méditations valides
 
-    res.json({ notes });
+    res.status(200).json({ notes });
 
   } catch (error) {
     console.error('❌ Erreur Cohere :', error.message);
-    res.status(500).send("Erreur lors de la génération.");
+    if (error.response) {
+      console.error('Détails API Cohere :', error.response.data);
+    }
+    res.status(500).json({ error: "Erreur lors de la génération." });
   }
 });
 
